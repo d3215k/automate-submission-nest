@@ -15,7 +15,6 @@ import { ContactModule } from './contact/contact.module';
         password: '',
         database: 'auto-sub',
         autoLoadModels: true,
-        synchronize: true,
       }),
     }),
     ContactModule,
