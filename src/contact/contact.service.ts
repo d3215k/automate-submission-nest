@@ -1,54 +1,27 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Sequelize } from 'sequelize-typescript';
-import { Contact } from 'src/contact/contact.entity';
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/sequelize';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
+import { Contact } from './entities/contact.entity';
 
 @Injectable()
 export class ContactService {
-  constructor(
-    @Inject('CONTACT_REPOSITORY') private contactRepository: typeof Contact,
-    private sequelize: Sequelize,
-  ) {}
+  constructor(@InjectModel(Contact) private contactModel: typeof Contact) {}
 
   create(createContactDto) {
-    return this.contactRepository.create(createContactDto);
-  }
-
-  async createMany() {
-    try {
-      await this.sequelize.transaction(async (t) => {
-        const transactionHost = { transaction: t };
-
-        await this.contactRepository.create(
-          {
-            firstName: 'John',
-            lastName: 'Doe',
-          },
-          transactionHost,
-        );
-
-        await this.contactRepository.create(
-          {
-            firstName: 'John',
-            lastName: 'Doe',
-          },
-          transactionHost,
-        );
-      });
-    } catch (err) {}
+    return this.contactModel.create(createContactDto);
   }
 
   async findAll(): Promise<Contact[]> {
-    return this.contactRepository.findAll<Contact>();
+    return this.contactModel.findAll();
   }
 
   findOne(id: number): Promise<Contact> {
-    return this.contactRepository.findOne({ where: { id } });
+    return this.contactModel.findOne({ where: { id } });
   }
 
   update(id: number, updateContactDto: UpdateContactDto) {
-    return this.contactRepository.update(updateContactDto, { where: { id } });
+    return this.contactModel.update(updateContactDto, { where: { id } });
   }
 
   async remove(id: number): Promise<void> {

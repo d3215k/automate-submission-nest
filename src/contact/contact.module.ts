@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ContactController } from './contact.controller';
 import { ContactService } from './contact.service';
-import { contactProviders } from './contact.providers';
-import { DatabaseModule } from '../database/database.module';
+import { ContactController } from './contact.controller';
+import { SequelizeModule } from '@nestjs/sequelize';
+import { Contact } from './entities/contact.entity';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [SequelizeModule.forFeature([Contact])],
   controllers: [ContactController],
-  providers: [ContactService, ...contactProviders],
+  providers: [ContactService],
+  exports: [SequelizeModule],
 })
 export class ContactModule {}
