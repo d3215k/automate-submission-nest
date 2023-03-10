@@ -13,8 +13,18 @@ export class ContactService {
     @InjectQueue('contact') private submitContactQueue: Queue,
   ) {}
 
-  async submitContact(id: number) {
-    await this.submitContactQueue.add('submit-contact', { contactId: id });
+  async submitAllContact(user) {
+    const contacts = await this.findAll();
+    contacts.forEach(async (contact) => {
+      await this.submitContactQueue.add('submit-contact', {
+        contactId: contact.id,
+        user,
+      });
+    });
+  }
+
+  async submitContact(contactId: number, user) {
+    await this.submitContactQueue.add('submit-contact', { contactId, user });
   }
 
   async create(createContactDto) {

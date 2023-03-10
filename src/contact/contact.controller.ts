@@ -21,10 +21,19 @@ export class ContactController {
     return this.contactService.create(createContactDto);
   }
 
+  @Post('submit')
+  async submitAllContact(@Body() user: any) {
+    this.contactService.submitAllContact(user);
+    return { message: 'Submitted all contact to process' };
+  }
+
   @Post('submit/:id')
-  async submitContact(@Param('id', ParseIntPipe) id: number) {
-    this.contactService.submitContact(+id);
-    return id;
+  async submitContact(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+  ) {
+    this.contactService.submitContact(id, body);
+    return { message: 'Submitted contact to process queue' };
   }
 
   @Get()
