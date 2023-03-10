@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
+import { ParseIntPipe } from '@nestjs/common/pipes';
 import { ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
@@ -18,6 +19,12 @@ export class ContactController {
   @Post()
   create(@Body() createContactDto: CreateContactDto) {
     return this.contactService.create(createContactDto);
+  }
+
+  @Post('submit/:id')
+  async submitContact(@Param('id', ParseIntPipe) id: number) {
+    this.contactService.submitContact(+id);
+    return id;
   }
 
   @Get()

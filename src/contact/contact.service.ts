@@ -3,17 +3,26 @@ import { InjectModel } from '@nestjs/sequelize';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
 import { Contact } from './entities/contact.entity';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class ContactService {
-  constructor(@InjectModel(Contact) private contactModel: typeof Contact) {}
+  constructor(
+    @InjectModel(Contact) private contactModel: typeof Contact,
+    @InjectQueue('contact') private submitContactQueue: Queue,
+  ) {}
 
-  create(createContactDto) {
+  async submitContact(id: number) {
+    await this.submitContactQueue.add('submit-contact', { contactId: id });
+  }
+
+  async create(createContactDto) {
     return this.contactModel.create(createContactDto);
   }
 
   async findAll(): Promise<Contact[]> {
-    return this.contactModel.findAll();
+    return this.contactModel.findAll({ limit: 15 });
   }
 
   findOne(id: number): Promise<Contact> {
