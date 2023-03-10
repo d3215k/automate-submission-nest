@@ -28,7 +28,7 @@
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/sequelize": "^9.0.0",
     "bull": "^4.10.4",
-    "faker": "^6.6.6",
+    "faker": "^5.5.3",
     "pg": "^8.10.0",
     "pg-hstore": "^2.3.4",
     "puppeteer": "^19.7.3",
