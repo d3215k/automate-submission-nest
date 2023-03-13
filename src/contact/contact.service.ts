@@ -17,6 +17,15 @@ export class ContactService {
 
   async submitAllContact(user) {
     const contacts = await this.findAll();
+    await this.submitToQueue(contacts, user);
+  }
+
+  async submitTenContact(user) {
+    const contacts = await this.findTen();
+    await this.submitToQueue(contacts, user);
+  }
+
+  async submitToQueue(contacts, user) {
     contacts.forEach(async (contact) => {
       await this.submitContactQueue.add(
         'submit-contact',
@@ -37,6 +46,10 @@ export class ContactService {
 
   async create(createContactDto) {
     return this.contactModel.create(createContactDto);
+  }
+
+  async findTen(): Promise<Contact[]> {
+    return this.contactModel.findAll({ limit: 10 });
   }
 
   async findAll(): Promise<Contact[]> {

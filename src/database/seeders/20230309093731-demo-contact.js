@@ -7,7 +7,7 @@ module.exports = {
     const contacts = [...Array(100)].map((_) => ({
       name: faker.name.fullName(),
       photo: faker.image.avatar(),
-      gender: 'male',
+      gender: faker.name.sex(),
       pob: faker.address.city(),
       dob: faker.date.past(),
       email: faker.internet.email(),

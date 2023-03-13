@@ -113,13 +113,6 @@ export class ContactProcessor {
     );
   }
 
-  @OnQueueError()
-  onError(job: Job, error: Error) {
-    this.logger.error(
-      `Error job ${job.id} of type ${job.name} with error ${error.message}`,
-    );
-  }
-
   @OnQueueCleaned()
   onCleaned(job: Job, result: unknown) {
     this.logger.log(
