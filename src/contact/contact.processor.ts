@@ -21,11 +21,6 @@ export class ContactProcessor {
 
   private readonly logger = new Logger(ContactProcessor.name);
 
-  @Process('submit-all-contact')
-  async handleSubmitAll(job: Job<unknown>) {
-    //
-  }
-
   @Process({ name: 'submit-contact', concurrency: 2 })
   async handleSubmit(job: Job<{ user; contactId: number }>) {
     try {
