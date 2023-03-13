@@ -1,6 +1,8 @@
 import {
   OnQueueActive,
+  OnQueueCleaned,
   OnQueueCompleted,
+  OnQueueError,
   OnQueueFailed,
   OnQueueProgress,
   OnQueueWaiting,
@@ -24,7 +26,7 @@ export class ContactProcessor {
     //
   }
 
-  @Process({ name: 'submit-contact', concurrency: 1 })
+  @Process({ name: 'submit-contact', concurrency: 2 })
   async handleSubmit(job: Job<{ user; contactId: number }>) {
     try {
       const { contactId } = job.data;
@@ -87,7 +89,14 @@ export class ContactProcessor {
       await page.click('button[type="submit"]');
       await page.waitForNavigation();
       await browser.close();
-    } catch (err) {}
+    } catch (err) {
+      this.logger.error(err.message);
+    }
+  }
+
+  @OnQueueWaiting()
+  onWaiting(jobId: number) {
+    this.logger.log(`Job ${jobId} waiting`);
   }
 
   @OnQueueActive()
@@ -109,9 +118,18 @@ export class ContactProcessor {
     );
   }
 
-  @OnQueueWaiting()
-  onWaiting(jobId: number) {
-    this.logger.log(`Job ${jobId} waiting`);
+  @OnQueueError()
+  onError(job: Job, error: Error) {
+    this.logger.error(
+      `Error job ${job.id} of type ${job.name} with error ${error.message}`,
+    );
+  }
+
+  @OnQueueCleaned()
+  onCleaned(job: Job, result: unknown) {
+    this.logger.log(
+      `Cleaned job ${job.id} of type ${job.name} with result ${result}`,
+    );
   }
 
   @OnQueueCompleted()
