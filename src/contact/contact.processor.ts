@@ -80,6 +80,7 @@ export class ContactProcessor {
       await page.waitForSelector('input[id="cv"]');
       const inputPhoto = await page.$('input[id="cv"]');
       await inputPhoto.uploadFile('storage/cv/cv1.txt');
+      await page.waitForNetworkIdle();
       // await page.screenshot({ path: `storage/results/${contactId}.png` });
       await page.click('button[type="submit"]');
       await page.waitForNavigation();
