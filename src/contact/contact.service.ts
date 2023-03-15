@@ -5,6 +5,8 @@ import { UpdateContactDto } from './dto/update-contact.dto';
 import { Contact } from './entities/contact.entity';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import puppeteer from 'puppeteer';
+import * as fs from 'fs/promises';
 
 @Injectable()
 export class ContactService {
@@ -16,32 +18,59 @@ export class ContactService {
   private readonly logger = new Logger(ContactService.name);
 
   async submitAllContact(user) {
+    await this.saveCookies(user);
     const contacts = await this.findAll();
-    await this.submitToQueue(contacts, user);
+    await this.submitToQueue(contacts);
   }
 
   async submitTenContact(user) {
+    await this.saveCookies(user);
     const contacts = await this.findTen();
-    await this.submitToQueue(contacts, user);
+    await this.submitToQueue(contacts);
   }
 
-  async submitToQueue(contacts, user) {
-    contacts.forEach(async (contact) => {
-      await this.submitContactQueue.add(
-        'submit-contact',
-        {
-          contactId: contact.id,
-          user,
-        },
-        { attempts: 3, backoff: { type: 'fixed', delay: 1000 } },
-      );
-      this.logger.log(`Submitted contact ${contact.id} to process queue`);
+  async submitOneContact(contactId: number, user) {
+    await this.saveCookies(user);
+    await this.submitContact(contactId);
+  }
+
+  async saveCookies(user) {
+    const browser = await puppeteer.launch({
+      // headless: false,
     });
+    const page = await browser.newPage();
+    await page.goto('http://laravel-breeze-react.test/login');
+    await page.waitForNavigation({
+      waitUntil: 'networkidle0',
+    });
+    await page.type('#email', user.email);
+    await page.type('#password', user.password);
+    await page.click('form button');
+    await page.waitForNavigation({
+      waitUntil: 'networkidle0',
+    });
+
+    const cookies = await page.cookies();
+
+    await fs.writeFile(
+      './storage/cookies.json',
+      JSON.stringify(cookies, null, 2),
+    );
   }
 
-  async submitContact(contactId: number, user) {
-    await this.submitContactQueue.add('submit-contact', { contactId, user });
+  async submitContact(contactId: number) {
+    await this.submitContactQueue.add(
+      'submit-contact',
+      { contactId },
+      { attempts: 3, backoff: { type: 'fixed', delay: 1000 } },
+    );
     this.logger.log(`Submitted contact ${contactId} to process queue`);
+  }
+
+  async submitToQueue(contacts) {
+    contacts.forEach(async (contact) => {
+      await this.submitContact(contact.id);
+    });
   }
 
   async create(createContactDto) {

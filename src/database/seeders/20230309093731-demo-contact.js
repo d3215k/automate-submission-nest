@@ -9,7 +9,7 @@ module.exports = {
       photo: faker.image.avatar(),
       gender: faker.name.sex(),
       pob: faker.address.city(),
-      dob: faker.date.past(),
+      dob: faker.date.birthdate(),
       email: faker.internet.email(),
       phone: faker.phone.number(),
       instagram: faker.internet.userName(),

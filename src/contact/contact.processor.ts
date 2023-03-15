@@ -14,6 +14,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Job } from 'bull';
 import puppeteer from 'puppeteer';
 import { Contact } from './entities/contact.entity';
+import * as fs from 'fs/promises';
 
 @Processor('contact')
 export class ContactProcessor {
@@ -21,11 +22,10 @@ export class ContactProcessor {
 
   private readonly logger = new Logger(ContactProcessor.name);
 
-  @Process({ name: 'submit-contact', concurrency: 2 })
-  async handleSubmit(job: Job<{ user; contactId: number }>) {
+  @Process({ name: 'submit-contact', concurrency: 4 })
+  async handleSubmit(job: Job<{ contactId: number }>) {
     try {
       const { contactId } = job.data;
-      const { user } = job.data;
       const contact = await this.contactModel.findOne({
         where: { id: contactId },
       });
@@ -33,18 +33,22 @@ export class ContactProcessor {
         return {};
       }
 
-      const browser = await puppeteer.launch({ headless: false });
+      const browser = await puppeteer.launch({
+        // headless: false,
+      });
       const page = await browser.newPage();
-      await page.goto('http://laravel-breeze-react.test/login');
-      await page.waitForSelector('#email');
-      await page.type('#email', user.email);
-      await page.type('#password', user.password);
-      await page.click('form button');
-      await page.waitForNavigation();
+      const cookiesString = await fs.readFile('./storage/cookies.json');
+      const cookies = JSON.parse(cookiesString.toString());
+      await page.setCookie(...cookies);
+
       await page.goto('http://laravel-breeze-react.test/contact/create');
+      await page.waitForNavigation({
+        waitUntil: 'networkidle0',
+      });
 
       await page.waitForSelector('#male');
       let photoName = `photo1.jpg`;
+
       await page.click('#male');
       if (contact.gender === 'female') {
         await page.click('#female');
@@ -64,7 +68,7 @@ export class ContactProcessor {
             month: '2-digit',
             year: 'numeric',
           }),
-        contact.dob.toISOString(),
+        contact.dob,
       );
 
       await page.type('#dob', dobString);
@@ -83,8 +87,14 @@ export class ContactProcessor {
       await page.waitForNetworkIdle();
       // await page.screenshot({ path: `storage/results/${contactId}.png` });
       await page.click('button[type="submit"]');
-      await page.waitForNavigation();
+      await page.waitForNavigation({
+        waitUntil: 'networkidle0',
+      });
       await browser.close();
+
+      return {
+        message: 'success',
+      };
     } catch (err) {
       this.logger.error(err.message);
     }

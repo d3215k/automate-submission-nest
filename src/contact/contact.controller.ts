@@ -34,11 +34,11 @@ export class ContactController {
   }
 
   @Post('submit/:id')
-  async submitContact(
+  async submitOneContact(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: any,
   ) {
-    this.contactService.submitContact(id, body);
+    this.contactService.submitOneContact(id, body);
     return { message: 'Submitted contact to process queue' };
   }
 
